@@ -23,8 +23,14 @@ const Todolist = () => {
   return (
     <div className="Todolist">
       <TodoCreationInput tdlSubmissionHandler={tdlSubmissionHandler}/>
+      <h1> My Todos </h1>
       <ul>
+        <li>Personal exampletodo -- Due Date</li>
         {tdlData.map((tdle) => <li key={tdle}> { tdle } </li> ) }
+      </ul>
+      <h2> Shared todos</h2>
+      <ul>
+        <li>Example user: Example Task -- Due Date </li>
       </ul>
     </div>
   )

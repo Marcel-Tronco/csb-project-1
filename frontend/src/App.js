@@ -13,10 +13,10 @@ const App = () => {
   const [notificationMessage, setNotification] = useState(sessionStorage.getItem('login')? 'Logged in' : '')
   const loginHandler = async (formData) => {
     const loggedIn = await loginService.login(formData)
-    console.log(loggedIn)
     if ( !loggedIn ) {
       setNotification('Login didn\'t succeed. Did you use the write credentials?')
       sessionStorage.removeItem('login')
+      sessionStorage.removeItem('username')
     } else {
       setNotification('Logged in.')
       history.push('/')

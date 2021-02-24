@@ -6,6 +6,7 @@ const login = async ({ username, password }) => {
     const response = await axios.post(`${process.env.PUBLIC_URL}/api/login`, { username, password })
     if (response.status === 201) {
       sessionStorage.setItem('login', 'true')
+      sessionStorage.setItem('username', response.data.username )
       return true
     } else {
       sessionStorage.removeItem('login')
