@@ -1,4 +1,3 @@
-const { response } = require('express')
 const { Pool } = require('pg')
 const pool = new Pool(/*{
     user: 'user',
@@ -35,7 +34,7 @@ const todoAdresseesTableModel = new TableModel (
   "todoadressees",
   [
     new Column("todo_id",  'integer references todos(id)'),
-    new Column("addressee_id", 'integer references users(username)'),
+    new Column("adressee_id", 'varchar(30) references users(username)'),
     new Column('id', 'serial primary key'),
   ]
 )
@@ -58,15 +57,15 @@ const initialUsers = [
 const initialTodos = [
   { 
     description: 'todo1',
-    dueDate: new Date(2021, 3, 20, 12, 00),
-    authorName: "admin",
-    peopleInvolved: ["user"]
+    duedate: new Date(2021, 3, 20, 12, 0),
+    author: "admin",
+    peopleinvolved: ["user"]
   },
   { 
     description: 'todo2',
-    dueDate: new Date(2019, 3, 20, 12, 00),
-    authorName: "user",
-    peopleInvolved: ["admin"]
+    duedate: new Date(2019, 3, 20, 12, 0),
+    author: "user",
+    peopleinvolved: ["admin"]
   }
 ]
 
@@ -81,54 +80,71 @@ const tableCreationQuery = (model) => {
 }
 
 const userInsertQuery = (user) => {
-  return `INSERT INTO ${userTableModel.tableName} VALUES ('${user.username}', '${user.password}'`
+  return `INSERT INTO ${userTableModel.tableName} VALUES ('${user.username}', '${user.password}') RETURNING *;`
 }
 
 const todoInsertQuery = (todo) => {
-  return `INSERT INTO ${todoTableModel.tableName} VALUES ('${todo.authorName}', '${todo.description}', to_timestamp(${todo.dueDate.toUTCString} / 1000.0));`
+  return `INSERT INTO ${todoTableModel.tableName} VALUES ('${todo.authorName}', '${todo.description}', $1) RETURNING *;`
 
 }
 
-const addresseeInsertQuery = (addressees, todoId) => {
-  var query = `ÌNSERT INTO ${todoAdresseesTableModel.tableName} VALUES ${addressees.map((addressee) => {
-    return `(${todoId}, '${addressee}'), ` //is the last comma a problem?
-    })};`
-
+const adresseeInsertQuery = (adressees, todoId) => {
+  var query = `INSERT INTO ${todoAdresseesTableModel.tableName} VALUES (${todoId}, '${adressees[0]}') ${adressees.map((adressee, i) => {
+    if (i === 0 ){
+      return
+    } else {
+      return `, (${todoId}, '${adressee}') `
+    }
+  })} RETURNING *;`
+  return query
 }
 
 
 const insertTodo = async (todo) => {
+  console.log('start inserting todos')
   if ( !todo.description 
-    || !todo.dueDate 
+    || !todo.duedate 
     || !todo.authorName
     ){
     throw "Invalid Todo Data Error"
   }
   try {
     //add todo
-    response = pool.query(todoInsertQuery(todo))
-    //add todoaddressees
-    console.log('This is the Insert Response:', response)
+    let query = todoInsertQuery(todo)
+    const res = await pool.query(query, [todo.duedate])
+    console.log('todo added.')
+    //add todoadressees
+    query = adresseeInsertQuery(todo.peopleinvolved, res.rows[0].id) 
+    console.log(query)
+    await pool.query(query)
   } catch (error) {
     console.log(error)
   }
 }
 
 const insertUsers = (user) => {
+
   if (!user.username || !user.password ){
     throw "Invalid User Data Error"
   }
   try {
-    pool.query(userInsertQuery(user))
+    let query = userInsertQuery(user) 
+    pool.query(query)
   } catch (error) {
     console.log(error)
   }
 }
 
 const initializeTodos = async () => {
-  console.log('start initialization of the table')
+  console.log('start initialization of todos table')
   try {
-    await pool.query(tableCreationQuery(todoTabelModel))
+    let query = tableCreationQuery(todoTableModel)
+    await pool.query(query)
+    console.log('todo table created')
+    query = tableCreationQuery(todoAdresseesTableModel)
+    await pool.query(query)
+    console.log('todo adressee table created')
+    
     initialTodos.forEach((todo) => insertTodo(todo) )
   } catch (error) {
     console.log(error)
@@ -136,9 +152,11 @@ const initializeTodos = async () => {
 }
 
 const initializeUsers = async () => {
-  console.log('start initialization of the table')
+  console.log('start initialization of user table')
   try {
-    await pool.query(tableCreationQuery(userTableModel))
+    let query = tableCreationQuery(userTableModel)
+    await pool.query(query)
+    console.log('usertable created')
     initialUsers.forEach((user) => insertUsers(user) )
   } catch (error) {
     console.log(error)
@@ -152,7 +170,7 @@ const initialize = async () => {
   //initializing users
   console.log('doing start up of users.')
   try {
-    const response = await pool.query(tableExistenceQuery(userTableModel))
+    const res = await pool.query(tableExistenceQuery(userTableModel))
     if (! res.rows[0].exists ) {
       await initializeUsers()
     } else{
@@ -160,13 +178,14 @@ const initialize = async () => {
     }
   } catch (error) {
     console.log(error)
+    return
   }
 
     
   //initializing todos
   console.log('doing start up of todos.')
   try {
-    const response = await pool.query(tableExistenceQuery(todoTableModel))
+    const res = await pool.query(tableExistenceQuery(todoTableModel))
     if (! res.rows[0].exists ) {
       await initializeTodos(todoTableModel.tableName)
     } else{
@@ -184,7 +203,7 @@ const initialize = async () => {
 module.exports = {
   initialize,
   insertTodo,
-  todoTabelModel,
+  todoTableModel,
   userTableModel,
   todoAdresseesTableModel,
   query: (text, params, callback) => {

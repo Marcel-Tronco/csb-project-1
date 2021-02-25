@@ -1,9 +1,17 @@
 const db = require('../db')
 
-const getTodos = async () => {
+const getAllQuery = `SELECT 
+todos.author,
+todos.description, 
+todos.duedate, 
+todoadressees.adressee_id AS peopleinvolved
+FROM todos
+LEFT JOIN todoadressees ON todos.id = todoadressees.todo_id`
+
+const getAllTodos = async () => {
   console.log('get todos from db\n db-password:', process.env.PGPASSWORD)
   try {
-    const { rows } = await db.syncquery(`SELECT * FROM ${db.todoAdresseesTableModel.tableName}`)
+    const { rows } = await db.syncquery(getAllQuery)
     console.log('get Todos rows:', rows) 
     return rows
   } catch (error) {
@@ -16,4 +24,4 @@ const addTodo = (todo) => {
 }
 
 
-module.exports = { getTodos, addTodo }
+module.exports = { getAllTodos, addTodo }

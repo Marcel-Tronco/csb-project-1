@@ -1,6 +1,19 @@
 //import React from 'react'
 import axios from 'axios'
-var dbList= ['total', 'fail']
+var dbList= [
+  {
+    description: 'total',
+    duedate: (new Date(2021, 3, 20, 12, 0)).toDateString(),
+    author: 'admin',
+    peopleinvolved: ['user']
+  },
+  {
+    description: 'fail',
+    duedate: (new Date(2019, 3, 20, 12, 0)).toDateString(),
+    author: 'user',
+    peopleinvolved: ['admin']
+  }
+]
 
 const getAll = async () => {
   try {

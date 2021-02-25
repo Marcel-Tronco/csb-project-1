@@ -8,7 +8,7 @@ const login = async (requestData) => {
   }
 
   try {
-    const { rows } = await db.syncquery(`SELECT ${password} FROM ${db.todoTabelModel.tableName} WHERE ${username}='${user.username}'`)
+    const { rows } = await db.syncquery(`SELECT password FROM ${db.userTableModel.tableName} WHERE username='${user.username}'`)
     if (rows && rows[0]){
       console.log(rows[0], user)
       return {username: user.username, success: user.password === rows[0].password ? true : false}

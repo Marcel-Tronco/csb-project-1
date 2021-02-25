@@ -5,10 +5,24 @@ import tdlService from '../service/tdlService'
 
 const Todolist = () => {
   const [ tdlData, setTdlData ] = useState([])
+  const [ myTodos, setMyTodos ] = useState([])
+  const [ otherTodos, setOtherTodos ] = useState([])
+
   useEffect(() => {
     const fetchTdlData = async () => {
       const temp1 = await tdlService.getAll()
-      setTdlData(temp1)
+      var myTodosTmp = []
+      var otherTodosTmp = []
+      const username = sessionStorage.getItem('username')
+      temp1.forEach(todo => {
+        if ( username === todo.author ){
+          myTodosTmp = myTodosTmp.concat(todo)
+        } else if ( todo.peopleinvolved && todo.peopleinvolved.includes(username)){
+          otherTodosTmp = otherTodosTmp.concat(todo)
+        }
+      })
+      setMyTodos(myTodosTmp)
+      setOtherTodos(otherTodosTmp)
     }
     fetchTdlData()
   }, [] )
@@ -25,12 +39,11 @@ const Todolist = () => {
       <TodoCreationInput tdlSubmissionHandler={tdlSubmissionHandler}/>
       <h1> My Todos </h1>
       <ul>
-        <li>Personal exampletodo -- Due Date</li>
-        {tdlData.map((tdle) => <li key={tdle}> { tdle } </li> ) }
+        {myTodos.map((todo) => <li key={todo.description}> { todo.description } -- peopleinvolved: {todo.peopleinvolved} -- due on: {todo.duedate} </li> ) }
       </ul>
       <h2> Shared todos</h2>
       <ul>
-        <li>Example user: Example Task -- Due Date </li>
+        {otherTodos.map((todo) => <li key={todo.description}> {todo.author}&apos;s todo:  { todo.description } -- peopleinvolved: {todo.peopleinvolved} -- due on: {todo.duedate} </li> ) }
       </ul>
     </div>
   )

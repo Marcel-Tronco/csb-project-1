@@ -2,14 +2,27 @@ const { request, response } = require('express')
 const db = require('../db')
 const tdlService = require('../service/todoService')
 const Router = require('express-promise-router')
-var tdlData = ['fail1', 'fail2']
+var tdlData = [
+  { 
+    description: 'fail1',
+    duedate: new Date(2021, 3, 20, 12, 0),
+    author: "admin",
+    peopleinvolved: ["user"]
+  },
+  { 
+    description: 'fail2',
+    duedate: new Date(2019, 3, 20, 12, 0),
+    author: "user",
+    peopleinvolved: ["admin"]
+  }
+]
 const todoRouter = new Router()
 
 todoRouter.get('/', async (request, response) => {
   console.log('reached the get route of todoRouter')
-  const tdlDbData = await tdlService.getTodos()
+  const tdlDbData = await tdlService.getAllTodos()
   console.log('tdlDbData:', tdlDbData)
-  response.json( tdlDbData || { tdlData })
+  response.json( tdlDbData || tdlData )
 })
 
 todoRouter.post('/', (request, response) => {

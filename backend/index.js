@@ -5,6 +5,7 @@ const logger = require('./utils/logger')
 const pictureRouter = require('./controllers/pictureEndpoint')
 const todoRouter = require('./controllers/todosEndpoint')
 const loginRouter = require('./controllers/loginEndpoint')
+const db = require('./db')
 const app = express()
 
 app.use(express.json())
@@ -17,6 +18,8 @@ app.use('/api/login', loginRouter)
 
 const server = http.createServer(app)
 const PORT = config.PORT
+
+db.initialize()
 
 server.listen(PORT, () => {
   logger.info(`Server started on port ${PORT}`)
