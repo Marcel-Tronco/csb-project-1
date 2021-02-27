@@ -25,15 +25,14 @@ const getAll = async () => {
       return ( dbList )
     }
   } catch (error) {
-    console.log(error)
     return dbList
   }
 }
 
-const addOne = async (tdlString) => {
+const addOne = async (todo) => {
   try {
-    const putRes = await axios.post(`${process.env.PUBLIC_URL}/api/todos`, { tdlE: tdlString })
-    return putRes.data.tdlE
+    const putRes = await axios.post(`${process.env.PUBLIC_URL}/api/todos`, todo )
+    return putRes.data
   } catch (exception) {
     console.log(exception)
   }

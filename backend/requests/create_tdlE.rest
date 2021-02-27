@@ -1,6 +1,9 @@
-POST http://localhost:8081/isitcreepy/api/todos
+POST http://localhost:5000/api/todos
 Content-Type: application/json
 
-{
-  "tdlE": "Ipsum dolore dolores et ipsum vero ea takimata nonumy voluptua. Et et sed amet est, nonumy no ut duo et consetetur labore duo, takimata diam accusam eos rebum stet sea no vero accusam, stet stet lorem amet stet justo et diam et, sanctus voluptua dolores ut justo ipsum ipsum, et eirmod takimata et rebum. Amet diam tempor magna et aliquyam accusam, duo et et clita est voluptua dolores labore. Clita at gubergren clita diam eos diam vero at. Stet erat rebum no et et, diam sed kasd justo elitr gubergren et est sit accusam, sadipscing dolor at sadipscing sed dolores dolores lorem est. Clita et nonumy vero dolores dolore lorem amet dolore. Sed vero gubergren diam no. Labore gubergren lorem et sanctus dolor elitr est sed stet. Rebum amet gubergren et eos diam. Dolor duo labore ut eirmod et sit."
-}
+  { 
+    "description": "todo3",
+    "duedate": "2020-02-11T23:00:00.000Z",
+    "author": "admin",
+    "peopleinvolved": ["user"]
+  }

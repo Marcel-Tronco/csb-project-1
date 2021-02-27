@@ -51,7 +51,8 @@ const todoTableModel = new TableModel(
 
 const initialUsers = [ 
   {username: 'admin', password: 'admin'}, 
-  {username: 'user', password: 'user'}
+  {username: 'user', password: 'user'},
+  {username: 'anyone', password: 'anyone'}
 ]
 
 const initialTodos = [
@@ -84,7 +85,7 @@ const userInsertQuery = (user) => {
 }
 
 const todoInsertQuery = (todo) => {
-  return `INSERT INTO ${todoTableModel.tableName} VALUES ('${todo.authorName}', '${todo.description}', $1) RETURNING *;`
+  return `INSERT INTO ${todoTableModel.tableName} VALUES ('${todo.author}', '${todo.description}', $1) RETURNING *;`
 
 }
 
@@ -104,7 +105,7 @@ const insertTodo = async (todo) => {
   console.log('start inserting todos')
   if ( !todo.description 
     || !todo.duedate 
-    || !todo.authorName
+    || !todo.author
     ){
     throw "Invalid Todo Data Error"
   }
@@ -202,7 +203,7 @@ const initialize = async () => {
 
 module.exports = {
   initialize,
-  insertTodo,
+  addTodo: insertTodo,
   todoTableModel,
   userTableModel,
   todoAdresseesTableModel,

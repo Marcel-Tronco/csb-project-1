@@ -8,7 +8,7 @@ pictureRouter.get('/', (request, response) => {
     if (err || Date.now() - stats.ctimeMs > 1000 * 60 * 60 ) {
       try {
         console.log('Try to download.')
-        response = await axios.get('https://picsum.photos/1200', { responseType: 'stream' })
+        response = await axios.get('https://picsum.photos/1200/300', { responseType: 'stream' })
         await response.data.pipe(fs.createWriteStream('data/pictures/image.jpg'));
       } catch (error) {
         console.error(error);

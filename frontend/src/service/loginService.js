@@ -5,15 +5,13 @@ const login = async ({ username, password }) => {
   try {
     const response = await axios.post(`${process.env.PUBLIC_URL}/api/login`, { username, password })
     if (response.status === 201) {
-      sessionStorage.setItem('login', 'true')
-      sessionStorage.setItem('username', response.data.username )
-      return true
+      return username
     } else {
-      sessionStorage.removeItem('login')
       return false
     }
   } catch (error) {
     console.log(error)
+    return false
   }
 }
 
