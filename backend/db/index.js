@@ -1,4 +1,10 @@
 const { Pool } = require('pg')
+const ExpressSession = require('express-session')
+const pgSession = require('connect-pg-simple')(ExpressSession);
+const bcrypt = require('bcrypt')
+const saltRounds = 10
+
+ 
 const pool = new Pool(/*{
     user: 'user',
     host: 'pp-db-svc.main-ns',
@@ -6,6 +12,17 @@ const pool = new Pool(/*{
     password: 'example',
     port: 5432,
 }*/)
+
+const session = ExpressSession({
+  store: new pgSession({
+    pool,                // Connection pool
+    tableName : 'user_sessions'   // Use another table-name than the default "session" one
+  }),
+  secret: process.env.SESSION_COOKIE_SECRET,
+  resave: false,
+  saveUninitialized: true,
+  cookie: { maxAge: 5 * 60 * 1000 } // 1h
+})
 
 class Column {
   constructor(columnName, dataType) {
@@ -26,7 +43,7 @@ const userTableModel = new TableModel(
   'users',
   [
     new Column('username', 'varchar(30) primary key'),
-    new Column('password', 'varchar')
+    new Column('passwordhash', 'varchar')
   ]
   )
 
@@ -73,6 +90,18 @@ const initialTodos = [
 const tableExistenceQuery = (model) => {
   return `SELECT EXISTS ( SELECT FROM pg_tables WHERE  tablename  = '${model.tableName}')`
 }
+
+const sessionTableCreactionQuery = `CREATE TABLE "user_sessions" (
+  "sid" varchar NOT NULL COLLATE "default",
+	"sess" json NOT NULL,
+	"expire" timestamp(6) NOT NULL
+)
+WITH (OIDS=FALSE);
+
+ALTER TABLE "user_sessions" ADD CONSTRAINT "session_pkey" PRIMARY KEY ("sid") NOT DEFERRABLE INITIALLY IMMEDIATE;
+
+CREATE INDEX "IDX_session_expire" ON "user_sessions" ("expire");`
+
 const tableCreationQuery = (model) => {
   queryString = `CREATE TABLE ${model.tableName} (${model.columns.map( (column) => {
     return `${column.columnName} ${column.dataType}`
@@ -81,7 +110,7 @@ const tableCreationQuery = (model) => {
 }
 
 const userInsertQuery = (user) => {
-  return `INSERT INTO ${userTableModel.tableName} VALUES ('${user.username}', '${user.password}') RETURNING *;`
+  return `INSERT INTO ${userTableModel.tableName} VALUES ('${user.username}', '${user.passwordhash}') RETURNING *;`
 }
 
 const todoInsertQuery = (todo) => {
@@ -123,12 +152,14 @@ const insertTodo = async (todo) => {
   }
 }
 
-const insertUsers = (user) => {
+const insertUsers = async (user) => {
 
   if (!user.username || !user.password ){
     throw "Invalid User Data Error"
   }
   try {
+    const passwordhash = await bcrypt.hash(user.password, saltRounds)
+    user.passwordhash = passwordhash
     let query = userInsertQuery(user) 
     pool.query(query)
   } catch (error) {
@@ -145,8 +176,9 @@ const initializeTodos = async () => {
     query = tableCreationQuery(todoAdresseesTableModel)
     await pool.query(query)
     console.log('todo adressee table created')
-    
-    initialTodos.forEach((todo) => insertTodo(todo) )
+    for (const todo of initialTodos) {
+      insertTodo(todo)
+    }
   } catch (error) {
     console.log(error)
   } 
@@ -158,7 +190,9 @@ const initializeUsers = async () => {
     let query = tableCreationQuery(userTableModel)
     await pool.query(query)
     console.log('usertable created')
-    initialUsers.forEach((user) => insertUsers(user) )
+    for (const user of initialUsers) {
+      await insertUsers(user)
+    }
   } catch (error) {
     console.log(error)
   } 
@@ -196,6 +230,20 @@ const initialize = async () => {
     console.log(error)
   }
 
+  //initializing session
+
+  console.log('doing start up of session')
+  try {
+    const res = await pool.query(tableExistenceQuery({tableName: 'user_sessions'}))
+    if (! res.rows[0].exists ) {
+      await pool.query(sessionTableCreactionQuery)
+    } else{
+      console.log('Tablecheck done.')
+    }
+  } catch (error) {
+    console.log(error)
+  }
+
 
 }
 
@@ -213,4 +261,5 @@ module.exports = {
   syncquery: (text, params) => {
     return pool.query(text, params)
   },
+  session
 }

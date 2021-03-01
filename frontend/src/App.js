@@ -16,10 +16,13 @@ const App = () => {
       sessionStorage.getItem('loggedin') :
       undefined
   )
-
-  const logoutHandler = () => {
+  const removeUser = () => {
     sessionStorage.removeItem('loggedin')
     setUser(undefined)
+  }
+
+  const logoutHandler = () => {
+    removeUser()
   }
   const loginHandler = async (formData) => {
     const loggedIn = await loginService.login(formData)
@@ -45,7 +48,7 @@ const App = () => {
           <LoginView loginHandler={loginHandler} />
         </Route>
         <Route path='/'>
-          <Todolist user={user} />
+          <Todolist user={user} removeUser={removeUser} />
         </Route>
 
       </Switch>

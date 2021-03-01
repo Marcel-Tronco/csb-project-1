@@ -18,14 +18,16 @@ var dbList= [
 const getAll = async () => {
   try {
     const response = await axios.get(`${process.env.PUBLIC_URL}/api/todos`)
-    console.log(response.data)
-    if (response.data) {
+    console.log('response data', response.data, 'response status:', response.status, response)
+    if (response.status !== 200 ){
+      return { status: response.status }
+    } else if (response.data) {
       return response.data
-    } else{
+    } else {
       return ( dbList )
     }
   } catch (error) {
-    return dbList
+    console.log(error)
   }
 }
 

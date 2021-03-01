@@ -17,7 +17,6 @@ const TodoCreationInput = ({ tdlSubmissionHandler }) => {
     event.preventDefault()
     tdlSubmissionHandler({
       description: descriptionField.value,
-      author: sessionStorage.getItem('loggedin'),
       peopleinvolved: [selectedUser.value],
       duedate: dueDateField.value
     })

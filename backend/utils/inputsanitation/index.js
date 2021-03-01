@@ -7,15 +7,15 @@ const sanitLoginData = (requestData) => {
   }
 }
 
-const sanitTdleData = (requestData) => {
+const sanitTdleData = (requestData, username) => {
   if (
     requestData.description &&
     typeof requestData.description === 'string' &&
     requestData.duedate &&
     Date.parse(requestData.duedate) !== NaN &&
-    requestData.author &&
-    typeof requestData.author   
+    username
     ) {
+      requestData.author = username
       if (requestData.peopleinvolved && requestData.peopleinvolved.length > 0) {
         var peopleinvolvedCheckPassed = true
         requestData.peopleinvolved.forEach(element => {

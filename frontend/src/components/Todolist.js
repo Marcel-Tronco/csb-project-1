@@ -4,7 +4,7 @@ import TodoCreationInput from './TodoCreationInput'
 import tdlService from '../service/tdlService'
 import { useHistory } from 'react-router-dom'
 
-const Todolist = ({ user }) => {
+const Todolist = ({ user, removeUser }) => {
   const [ allTodos, setAllTodos ] = useState({ myTodos: [], otherTodos: [] })
   const history = useHistory()
   const addToMyTodos = (todo) => {
@@ -29,27 +29,34 @@ const Todolist = ({ user }) => {
       const tmp1 = await tdlService.getAll()
       var myTodosTmp = []
       var otherTodosTmp = []
-      tmp1.forEach(todo => {
-        if ( user === todo.author ){
-          myTodosTmp = myTodosTmp.concat(todo)
-        } else if ( todo.peopleinvolved && todo.peopleinvolved.includes(user)){
-          otherTodosTmp = otherTodosTmp.concat(todo)
-        }
-      })
-      setAllTodos({
-        myTodos: myTodosTmp,
-        otherTodos: otherTodosTmp
-      })
+      console.log('blub', tmp1)
+      if (!tmp1 || (tmp1.status && tmp1.status === 401)) {
+        setAllTodos({ myTodos: [], otherTodos: [] })
+        removeUser()
+        history.push('/login')
+      } else {
+        tmp1.forEach(todo => {
+          if ( user === todo.author ){
+            myTodosTmp = myTodosTmp.concat(todo)
+          } else if ( todo.peopleinvolved && todo.peopleinvolved.includes(user)){
+            otherTodosTmp = otherTodosTmp.concat(todo)
+          }
+        })
+        setAllTodos({
+          myTodos: myTodosTmp,
+          otherTodos: otherTodosTmp
+        })
+      }
     }
     fetchTdlData()
-  }, [user])
+  }, [user, history, removeUser])
   if (!user) {
     history.push('/login')
   }
   const tdlSubmissionHandler = async ( todo ) => {
     const added = await tdlService.addOne(todo)
-    if ( added ) {
-      addToMyTodos(todo)
+    if ( added && added.tdle) {
+      addToMyTodos(added.tdle)
     }
   }
 

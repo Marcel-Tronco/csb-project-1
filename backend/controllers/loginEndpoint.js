@@ -9,6 +9,11 @@ loginRouter.post('/', async (request, response) => {
   
   if (request.body) {
     loginResult = await loginService.login(request.body)
+    if (loginResult.success) {
+      request.session.loggedin = true
+      request.session.logindate = Date.now()
+      request.session.username = loginResult.username
+    }
     returnStatus = loginResult.success? 201 : 401
     response.status(returnStatus).send(JSON.stringify(loginResult))
   } else{
