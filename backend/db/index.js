@@ -88,7 +88,7 @@ const initialTodos = [
 ]
 
 const tableExistenceQuery = (model) => {
-  return `SELECT EXISTS ( SELECT FROM pg_tables WHERE  tablename  = '${model.tableName}')`
+  return [`SELECT EXISTS ( SELECT FROM pg_tables WHERE  tablename  = $1)`, [model.tableName]]
 }
 
 const sessionTableCreactionQuery = `CREATE TABLE "user_sessions" (
@@ -110,11 +110,11 @@ const tableCreationQuery = (model) => {
 }
 
 const userInsertQuery = (user) => {
-  return `INSERT INTO ${userTableModel.tableName} VALUES ('${user.username}', '${user.passwordhash}') RETURNING *;`
+  return [`INSERT INTO ${userTableModel.tableName} VALUES ($1, $2) RETURNING *;`, [user.username, user.passwordhash]]
 }
 
 const todoInsertQuery = (todo) => {
-  return `INSERT INTO ${todoTableModel.tableName} VALUES ('${todo.author}', '${todo.description}', $1) RETURNING *;`
+  return [`INSERT INTO $1 VALUES ($2, $3, $4) RETURNING *;`, [todoTableModel.tableName, todo.author, todo.description, todo.duedate ]]
 
 }
 
@@ -141,7 +141,7 @@ const insertTodo = async (todo) => {
   try {
     //add todo
     let query = todoInsertQuery(todo)
-    const res = await pool.query(query, [todo.duedate])
+    const res = await pool.query(...query)
     console.log('todo added.')
     //add todoadressees
     query = adresseeInsertQuery(todo.peopleinvolved, res.rows[0].id) 
@@ -205,7 +205,7 @@ const initialize = async () => {
   //initializing users
   console.log('doing start up of users.')
   try {
-    const res = await pool.query(tableExistenceQuery(userTableModel))
+    const res = await pool.query(...tableExistenceQuery(userTableModel))
     if (! res.rows[0].exists ) {
       await initializeUsers()
     } else{
@@ -220,7 +220,7 @@ const initialize = async () => {
   //initializing todos
   console.log('doing start up of todos.')
   try {
-    const res = await pool.query(tableExistenceQuery(todoTableModel))
+    const res = await pool.query(...tableExistenceQuery(todoTableModel))
     if (! res.rows[0].exists ) {
       await initializeTodos(todoTableModel.tableName)
     } else{
@@ -234,7 +234,7 @@ const initialize = async () => {
 
   console.log('doing start up of session')
   try {
-    const res = await pool.query(tableExistenceQuery({tableName: 'user_sessions'}))
+    const res = await pool.query(...tableExistenceQuery({tableName: 'user_sessions'}))
     if (! res.rows[0].exists ) {
       await pool.query(sessionTableCreactionQuery)
     } else{

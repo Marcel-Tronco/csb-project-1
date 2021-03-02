@@ -10,11 +10,16 @@ const app = express()
 db.initialize()
 
 app.use(express.json())
-app.use(express.static('dist'))
+
 app.use(db.session)
 app.use('/api/picture.jpg', pictureRouter)
 app.use('/api/todos', todoRouter)
 app.use('/api/login', loginRouter)
+
+
+
+
+app.use(express.static('dist'))
 
 const server = http.createServer(app)
 const PORT = config.PORT
